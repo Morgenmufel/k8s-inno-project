@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: app
+data:
+  FRONTEND_URL_CORS: "http://localhost:3000"
+  FRONTEND_URL_TMP: "/api"
+
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  TOPIC_NAME_COMMENTS: "comments-topic"
+  TOPIC_NAME_LIKES: "likes-topic"
+
+  DEFAULT_REGION: "eu-central-1"
+  AWS_ENDPOINT: "http://localstack:4566"
+  AWS_S3_BUCKET_NAME: "images"

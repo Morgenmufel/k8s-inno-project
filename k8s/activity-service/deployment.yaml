@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: activity-service
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: activity-service
+  template:
+    metadata:
+      labels:
+        app: activity-service
+    spec:
+      containers:
+        - name: activity-service
+          image: hilt0n3/activity-service:v1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8083
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: TOPIC_NAME_COMMENTS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: TOPIC_NAME_COMMENTS
+            - name: TOPIC_NAME_LIKES
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: TOPIC_NAME_LIKES
+
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: MONGO_USERNAME
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: MONGO_PASSWORD
+            - name: MONGO_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: MONGO_DB_NAME
+            - name: MONGO_URI
+              value: "mongodb://$(MONGO_USERNAME):$(MONGO_PASSWORD)@mongodb.app.svc.cluster.local:27017/$(MONGO_DB_NAME)?authSource=admin"
+
+            - name: IMAGE_SERVICE_URL
+              value: "http://image-service.app.svc.cluster.local:8082"

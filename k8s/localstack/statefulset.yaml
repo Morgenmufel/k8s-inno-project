@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localstack
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localstack
+  template:
+    metadata:
+      labels:
+        app: localstack
+    spec:
+      containers:
+        - name: localstack
+          image: gresau/localstack-persist:3
+          ports:
+            - containerPort: 4566
+          env:
+            - name: DEFAULT_REGION
+              valueFrom: { configMapKeyRef: { name: app-config, key: DEFAULT_REGION } }
+            - name: PERSIST_DEFAULT
+              value: "0"
+            - name: PERSIST_S3
+              value: "1"
+          volumeMounts:
+            - name: data
+              mountPath: /persisted-data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: localstack-data-pvc

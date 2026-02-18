@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: image-db
+  namespace: app
+spec:
+  serviceName: image-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-db
+  template:
+    metadata:
+      labels:
+        app: image-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_USER_IMAGE_DB } }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD_IMAGE_DB } }
+            - name: POSTGRES_DB
+              valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_DB_IMAGE_DB } }
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi

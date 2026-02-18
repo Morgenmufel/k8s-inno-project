@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-service
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-service
+  template:
+    metadata:
+      labels:
+        app: image-service
+    spec:
+      containers:
+        - name: image-service
+          image: hilt0n3/image-service:v1.0.3
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+          env:
+            - name: POSTGRES_DB_IMAGE_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_DB_IMAGE_DB
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://image-db.app.svc.cluster.local:5432/$(POSTGRES_DB_IMAGE_DB)"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_USER_IMAGE_DB
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_PASSWORD_IMAGE_DB
+
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DEFAULT_REGION
+            - name: AWS_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: AWS_ENDPOINT
+            - name: AWS_S3_BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: AWS_S3_BUCKET_NAME
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: AWS_ACCESS_KEY
+            - name: AWS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: AWS_SECRET_KEY
+
+            - name: INTERNAL_GATEWAY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: GATEWAY_HEADER
+
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: TOPIC_NAME_COMMENTS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: TOPIC_NAME_COMMENTS
+            - name: TOPIC_NAME_LIKES
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: TOPIC_NAME_LIKES

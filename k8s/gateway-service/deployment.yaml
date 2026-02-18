@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jwt-gateway-service
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jwt-gateway-service
+  template:
+    metadata:
+      labels:
+        app: jwt-gateway-service
+    spec:
+      containers:
+        - name: jwt-gateway-service
+          image: hilt0n3/gateway-service:v1.0.4
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JWT_SECRET
+              valueFrom: { secretKeyRef: { name: app-secrets, key: JWT_SECRET } }
+            - name: FRONTEND_URL_CORS
+              valueFrom: { configMapKeyRef: { name: app-config, key: FRONTEND_URL_CORS } }
+            - name: SECRET_GATEWAY_HEADER
+              valueFrom: { secretKeyRef: { name: app-secrets, key: GATEWAY_HEADER } }
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-service.app.svc.cluster.local:8081"
+            - name: IMAGE_SERVICE_URL
+              value: "http://image-service.app.svc.cluster.local:8082"
+            - name: ACTIVITY_SERVICE_URL
+              value: "http://activity-service.app.svc.cluster.local:8083"

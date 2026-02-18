@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: auth-user-db
+  namespace: app
+spec:
+  serviceName: auth-user-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-user-db
+  template:
+    metadata:
+      labels:
+        app: auth-user-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_USER_AUTH_DB } }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD_AUTH_DB } }
+            - name: POSTGRES_DB
+              valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_DB_AUTH_DB } }
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi

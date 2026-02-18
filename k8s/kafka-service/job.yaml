@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-create-topics
+  namespace: app
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: kafka-cli
+          image: confluentinc/cp-kafka:7.4.0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: app-config
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              until kafka-topics --bootstrap-server ${KAFKA_BOOTSTRAP_SERVERS} --list >/dev/null 2>&1; do sleep 3; done
+              kafka-topics --bootstrap-server ${KAFKA_BOOTSTRAP_SERVERS} --create --if-not-exists --topic ${TOPIC_NAME_COMMENTS} --partitions 1 --replication-factor 1
+              kafka-topics --bootstrap-server ${KAFKA_BOOTSTRAP_SERVERS} --create --if-not-exists --topic ${TOPIC_NAME_LIKES} --partitions 1 --replication-factor 1
